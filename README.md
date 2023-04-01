@@ -25,6 +25,33 @@ Without hyperparameter tuning, the LoRA model produces outputs comparable to the
 
 1. If bitsandbytes doesn't work, [install it from source.](https://github.com/TimDettmers/bitsandbytes/blob/main/compile_from_source.md) Windows users can follow [these instructions](https://github.com/tloen/alpaca-lora/issues/17).
 
+### Training with DeepSpeed (`finetune.py`)
+Refer to examples [here](https://huggingface.co/docs/accelerate/usage_guides/deepspeed])
+```
+{
+    "train_micro_batch_size_per_gpu": 14,
+    "train_batch_size": 168,  # train_batch_size = $NGPUs * train_micro_batch_size_per_gpu * gradient_accumulation_steps
+    "gradient_accumulation_steps": 3,
+    "optimizer": {
+      "type": "Adam",
+      "params": {
+        "lr": 3e-4,
+        "betas": [0.9, 0.98],
+        "eps": 1e-8
+      }
+    },
+    "zero_optimization": {
+      "stage": 1
+    },
+    "fp16": {
+      "enabled": false
+    },
+    "wall_clock_breakdown": false
+}
+
+deepspeed --nump_gpus=8 finetune.py --deepspeed_config PATHTOFILE
+```
+
 ### Training (`finetune.py`)
 
 This file contains a straightforward application of PEFT to the LLaMA model,
