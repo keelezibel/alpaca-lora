@@ -55,6 +55,7 @@ def train(
     wandb_log_model: str = "",  # options: false | true
     resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "alpaca",  # The prompt template to use, will default to alpaca.
+    deepspeed_config_filepath: str = "",
 ):
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
         print(
@@ -222,8 +223,15 @@ def train(
         model.is_parallelizable = True
         model.model_parallel = True
 
+    engine, , , _ = deepspeed.initialize(
+                        model=model,
+                        model_parameters=model.parameters(),
+                        training_data=train_data,
+                        config_params=deepspeed_config_filepath
+                    )
+        
     trainer = transformers.Trainer(
-        model=model,
+        model=engine.model,
         train_dataset=train_data,
         eval_dataset=val_data,
         args=transformers.TrainingArguments(
